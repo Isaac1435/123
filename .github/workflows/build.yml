@@ -1,56 +1,45 @@
-name: Build macOS Executable
-on: [push]
+name: Build macOS App
+
+on:
+  push:
+    branches:
+      - main  # 在推送到 main 分支时触发
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-latest  # 使用 macOS 虚拟机环境
     steps:
       # Step 1: 检出代码
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
+
+      # Step 2: 设置 Python 环境
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
-          fetch-depth: 0  # 确保检出完整仓库
+          python-version: '3.9'  # 选择合适的 Python 版本
 
-      # Step 2: 验证文件是否正确
-      - name: Verify files
-        run: |
-          echo "Current directory:"
-          pwd
-          echo "List of files:"
-          ls -la
-          if [ ! -f "book_checker.txt" ] && [ ! -f "book_checker.py" ]; then
-            echo "Error: book_checker.txt or book_checker.py not found!"
-            exit 1
-          fi
-
-      # Step 3: 设置 Python 环境
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      # Step 4: 安装依赖
+      # Step 3: 安装依赖
       - name: Install dependencies
-        run: pip install pyinstaller
-
-      # Step 5: 编译可执行文件
-      - name: Build Executable
         run: |
-          # 确保文件正确命名
-          if [ -f "book_checker.txt" ]; then
-            mv book_checker.txt book_checker.py
-          fi
-          echo "Compiling book_checker.py into an executable..."
-          pyinstaller --onefile book_checker.py
-          # 检查生成是否成功
-          if [ ! -f "dist/book_checker" ]; then
-            echo "Error: Executable not generated!"
-            exit 1
-          fi
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      # Step 6: 上传工件
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v4
+      # Step 4: 安装 py2app
+      - name: Install py2app
+        run: pip install py2app
+
+      # Step 5: 打包 macOS 应用
+      - name: Build macOS app
+        run: |
+          python setup.py py2app
+
+      # Step 6: 保存生成的文件为 Artifact
+      - name: Upload app artifact
+        uses: actions/upload-artifact@v3
         with:
-          name: book_checker_macos
-          path: dist/book_checker  # 确保路径正确
+          name: macOS-app
+          path: dist/  # py2app 默认生成的文件夹
