@@ -8,12 +8,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 确保获取完整仓库历史
+          fetch-depth: 0  # 确保检出完整仓库
 
       - name: Verify files
         run: |
-          ls -la
-          pwd
+          ls -la  # 列出所有文件，检查文件名是否正确
+          pwd     # 显示当前路径
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -24,7 +24,13 @@ jobs:
         run: pip install pyinstaller
 
       - name: Build Executable
-        run: pyinstaller --onefile book_checker.py
+        run: |
+          # 如果文件是 .txt，先重命名为 .py
+          if [ -f "book_checker.txt" ]; then
+            mv book_checker.txt book_checker.py
+          fi
+          # 编译
+          pyinstaller --onefile book_checker.py
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
