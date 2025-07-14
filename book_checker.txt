@@ -1,0 +1,85 @@
+import os
+import re
+
+
+def extract_books_from_reference(file_path):
+    """从Reference.txt中提取书籍信息"""
+    with open(file_path, 'r', encoding='utf-8') as f:
+        content = f.read()
+
+    # 匹配格式如：[西方传统·经典与解释·亚里士多德注疏集]《政治学》疏证 [意]阿奎那著 黄涛译 华夏出版社2013
+    pattern = r'(\[.*?\])?(【缺】)?\[(.*?)\](.*?)\s+([^\s]+)\s+([^\s]+)\s+([^\s]+出版社\d+)'
+    books = re.findall(pattern, content)
+
+    book_list = []
+    for book in books:
+        # 结构: (前缀, 是否缺失, 丛书分类, 书名, 作者, 译者, 出版社年份)
+        book_info = {
+            'missing': book[1] == '【缺】',
+            'series': book[2],
+            'title': book[3].strip(),
+            'author': book[4],
+            'translator': book[5],
+            'publisher': book[6],
+            'full_info': f"[{book[2]}]{book[3]} {book[4]} {book[5]} {book[6]}"
+        }
+        book_list.append(book_info)
+
+    return book_list
+
+
+def find_missing_books(reference_books, pdf_folder):
+    """找出缺失的书籍并返回找到和未找到的书籍列表"""
+    # 获取当前文件夹下所有PDF文件
+    pdf_files = [f for f in os.listdir(pdf_folder) if f.lower().endswith('.pdf')]
+
+    found_books = []
+    missing_books = []
+
+    for book in reference_books:
+        found = False
+        title_keywords = book['title'].replace('《', '').replace('》', '').split()
+        for keyword in title_keywords:
+            if any(keyword in pdf_file for pdf_file in pdf_files):
+                found = True
+                break
+
+        if found:
+            found_books.append(book)
+        else:
+            missing_books.append(book)
+
+    return found_books, missing_books
+
+
+def save_to_file(filename, books, title):
+    """将书籍列表保存到文件"""
+    with open(filename, 'w', encoding='utf-8') as f:
+        f.write(f"{title} (共 {len(books)} 本):\n\n")
+        for i, book in enumerate(books, 1):
+            f.write(f"{i}. {book['full_info']}\n")
+
+
+def main():
+    # 文件路径
+    reference_file = 'Reference.txt'
+    pdf_folder = '.'  # 当前文件夹
+
+    # 提取书籍信息
+    books = extract_books_from_reference(reference_file)
+
+    # 找出找到和缺失的书籍
+    found_books, missing_books = find_missing_books(books, pdf_folder)
+
+    # 保存结果到文件
+    save_to_file('found_books.txt', found_books, "已找到的书籍")
+    save_to_file('missing_books.txt', missing_books, "缺失的书籍")
+
+    # 打印结果
+    print(f"处理完成！")
+    print(f"已找到 {len(found_books)} 本书籍，结果保存在 found_books.txt")
+    print(f"缺失 {len(missing_books)} 本书籍，结果保存在 missing_books.txt")
+
+
+if __name__ == '__main__':
+    main()
