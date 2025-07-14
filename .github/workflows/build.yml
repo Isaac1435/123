@@ -39,7 +39,7 @@ jobs:
 
       # Step 6: 保存生成的文件为 Artifact
       - name: Upload app artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: macOS-app
           path: dist/  # py2app 默认生成的文件夹
