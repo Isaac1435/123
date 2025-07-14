@@ -1,20 +1,26 @@
 name: Build macOS Executable
-on: [push]
+on: [push]  # 触发条件：代码推送时运行
+
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-latest  # 使用 macOS 环境
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v4  # 使用最新版 checkout
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5  # 使用最新版 setup-python
         with:
-          python-version: '3.9'
+          python-version: "3.11"  # 指定 Python 版本
+
       - name: Install PyInstaller
         run: pip install pyinstaller
+
       - name: Build Executable
-        run: pyinstaller --onefile book_checker.py
+        run: pyinstaller --onefile book_checker.py  # 打包为单文件
+
       - name: Upload Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4  # 使用 v4 替代弃用的 v2
         with:
-          name: book_checker_macos
-          path: dist/book_checker
+          name: book_checker_macos  # 产物名称
+          path: dist/book_checker    # 上传的可执行文件路径
