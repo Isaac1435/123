@@ -1,44 +1,39 @@
-name: Build macOS App
-
-on:
-  push:
-    branches:
-      - main  # 在推送到 main 分支时触发
-  pull_request:
-    branches:
-      - main
+name: Build macOS Executable
+on: [push]
 
 jobs:
   build:
-    runs-on: macos-latest  # 使用 macOS 虚拟机环境
+    runs-on: macos-latest
     steps:
-      # Step 1: 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
-        
-      - name: Debug files
-        run: |
-          pwd     # 显示当前工作目录
-          ls -R   # 递归列出所有文件
-      
-      # Step 2: 设置 Python 环境
-      - name: Setup Python
-        uses: actions/setup-python@v4
         with:
-          python-version: '3.9'  # 选择合适的 Python 版本
+          fetch-depth: 0  # 确保检出完整仓库
 
-      # Step 4: 安装 py2app
-      - name: Install py2app
-        run: pip install py2app
+      - name: Verify files
+        run: |
+          ls -la  # 列出所有文件，检查文件名是否正确
+          pwd     # 显示当前路径
 
-      # Step 5: 打包 macOS 应用
-      - name: Build macOS app
-        run: 
-          python main.py py2app
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-      # Step 6: 保存生成的文件为 Artifact
-      - name: Upload app artifact
+      - name: Install dependencies
+        run: pip install pyinstaller
+
+      - name: Build Executable
+        run: |
+          # 如果文件是 .txt，先重命名为 .py
+          if [ -f "book_checker.txt" ]; then
+            mv book_checker.txt book_checker.py
+          fi
+          # 编译
+          pyinstaller --onefile book_checker.py
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: macOS-app
-          path: dist/  # py2app 默认生成的文件夹
+          name: book_checker_macos
+          path: dist/book_checker
