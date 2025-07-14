@@ -5,35 +5,52 @@ jobs:
   build:
     runs-on: macos-latest
     steps:
+      # Step 1: 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # 确保检出完整仓库
 
+      # Step 2: 验证文件是否正确
       - name: Verify files
         run: |
-          ls -la  # 列出所有文件，检查文件名是否正确
-          pwd     # 显示当前路径
+          echo "Current directory:"
+          pwd
+          echo "List of files:"
+          ls -la
+          if [ ! -f "book_checker.txt" ] && [ ! -f "book_checker.py" ]; then
+            echo "Error: book_checker.txt or book_checker.py not found!"
+            exit 1
+          fi
 
+      # Step 3: 设置 Python 环境
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
+      # Step 4: 安装依赖
       - name: Install dependencies
         run: pip install pyinstaller
 
+      # Step 5: 编译可执行文件
       - name: Build Executable
         run: |
-          # 如果文件是 .txt，先重命名为 .py
+          # 确保文件正确命名
           if [ -f "book_checker.txt" ]; then
             mv book_checker.txt book_checker.py
           fi
-          # 编译
+          echo "Compiling book_checker.py into an executable..."
           pyinstaller --onefile book_checker.py
+          # 检查生成是否成功
+          if [ ! -f "dist/book_checker" ]; then
+            echo "Error: Executable not generated!"
+            exit 1
+          fi
 
+      # Step 6: 上传工件
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: book_checker_macos
-          path: dist/book_checker
+          path: dist/book_checker  # 确保路径正确
