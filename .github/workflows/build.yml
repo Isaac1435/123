@@ -18,8 +18,9 @@ jobs:
         
       - name: Debug files
         run: |
-          ls -R  # 递归列出所有文件
-          
+          pwd     # 显示当前工作目录
+          ls -R   # 递归列出所有文件
+      
       # Step 2: 设置 Python 环境
       - name: Setup Python
         uses: actions/setup-python@v4
