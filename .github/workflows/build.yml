@@ -28,7 +28,8 @@ jobs:
 
       # Step 5: 打包 macOS 应用
       - name: Build macOS app
-        run: |
+        run: 
+          cd workflow  
           python setup.py py2app
 
       # Step 6: 保存生成的文件为 Artifact
